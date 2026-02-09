@@ -27,10 +27,10 @@ export default function PillNavbar() {
                     <Link
                         key={index}
                         href={item.href}
-                        className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-[#bc4749]/10 text-[#5e503f] hover:text-[#bc4749] transition-all duration-300 group"
+                        className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-full hover:bg-[#bc4749]/10 text-[#5e503f] hover:text-[#bc4749] transition-all duration-300 group"
                     >
-                        <item.icon size={18} className="group-hover:scale-110 transition-transform" />
-                        <span className="text-xs text-nowrap font-medium tracking-wide hidden md:block">
+                        <item.icon size={18} className="group-hover:scale-110 transition-transform flex-shrink-0" />
+                        <span className="text-[10px] md:text-xs text-nowrap font-medium tracking-wide hidden md:block">
                             {item.label}
                         </span>
                     </Link>

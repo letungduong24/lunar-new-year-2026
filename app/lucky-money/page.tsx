@@ -51,7 +51,7 @@ export default function LuckyMoneyPage() {
     };
 
     return (
-        <main className="relative min-h-screen w-full flex flex-col items-center justify-center p-4 overflow-x-hidden pt-24 lg:pt-8 bg-[#fdf6e3]">
+        <main className="relative min-h-screen w-full flex flex-col items-center p-4 overflow-x-hidden pt-24 md:pt-32 bg-[#fdf6e3]">
             {/* Background Layer */}
             <div className="absolute inset-0 -z-30">
                 <Image src="/bg.jpg" alt="Background" fill className="object-cover" priority />

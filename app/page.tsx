@@ -22,7 +22,7 @@ export default function Home() {
       <Loading isReady={isReady} />
       <PillNavbar />
 
-      <main className="relative h-screen w-full flex flex-col items-center justify-center p-4 overflow-hidden">
+      <main className="relative min-h-screen w-full flex flex-col items-center justify-center p-4 pt-20 overflow-x-hidden">
         {/* Vintage Background Layers */}
         <div className="absolute inset-0 -z-30">
           <Image

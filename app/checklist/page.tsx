@@ -75,7 +75,7 @@ export default function ChecklistPage() {
     };
 
     return (
-        <main className="relative h-screen w-full flex flex-col items-center justify-center p-4 overflow-hidden">
+        <main className="relative min-h-screen w-full flex flex-col items-center p-4 pt-24 md:pt-32 overflow-x-hidden bg-[#fdf6e3]">
             {/* Background Layer (bg.jpg) */}
             <div className="absolute inset-0 -z-30">
                 <Image
