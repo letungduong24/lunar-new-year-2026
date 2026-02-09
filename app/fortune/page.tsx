@@ -13,6 +13,7 @@ export default function FortunePage() {
     const [fortune, setFortune] = useState("");
     const [isGenerating, setIsGenerating] = useState(false);
     const [isShaking, setIsShaking] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
     const exportRef = useRef<HTMLDivElement>(null);
 
     const generateFortune = async () => {
@@ -46,6 +47,7 @@ export default function FortunePage() {
 
     const exportImage = async () => {
         if (exportRef.current === null) return;
+        setIsExporting(true);
         try {
             const dataUrl = await toPng(exportRef.current, { cacheBust: true, pixelRatio: 2 });
             const link = document.createElement("a");
@@ -54,6 +56,8 @@ export default function FortunePage() {
             link.click();
         } catch (err) {
             console.error("Export failed", err);
+        } finally {
+            setIsExporting(false);
         }
     };
 
@@ -217,9 +221,10 @@ export default function FortunePage() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={exportImage}
-                        className="w-full bg-[#bc4749] text-white py-4 rounded-2xl shadow-xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest hover:bg-[#a3393b] transition-all"
+                        disabled={isExporting}
+                        className="w-full bg-[#bc4749] text-white py-4 rounded-2xl shadow-xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest hover:bg-[#a3393b] disabled:opacity-50 transition-all"
                     >
-                        <Download size={20} />
+                        {isExporting ? <RotateCcw size={20} className="animate-spin" /> : <Download size={20} />}
                         Lưu Quẻ May Mắn
                     </motion.button>
                 </div>

@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { toPng } from "html-to-image";
-import { Download, ChevronLeft, CheckCircle2, Circle } from "lucide-react";
+import { Download, ChevronLeft, CheckCircle2, Circle, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -48,6 +48,7 @@ const checklistItems = [
 
 export default function ChecklistPage() {
     const [checked, setChecked] = useState<number[]>([]);
+    const [isExporting, setIsExporting] = useState(false);
     const exportRef = useRef<HTMLDivElement>(null);
 
 
@@ -59,7 +60,7 @@ export default function ChecklistPage() {
 
     const exportImage = async () => {
         if (exportRef.current === null) return;
-
+        setIsExporting(true);
         try {
             const dataUrl = await toPng(exportRef.current, { cacheBust: true, pixelRatio: 2 });
             const link = document.createElement("a");
@@ -68,6 +69,8 @@ export default function ChecklistPage() {
             link.click();
         } catch (err) {
             console.error("Export failed", err);
+        } finally {
+            setIsExporting(false);
         }
     };
 
@@ -116,9 +119,10 @@ export default function ChecklistPage() {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={exportImage}
-                        className="mt-4 bg-[#bc4749] text-white px-8 py-3 rounded-full shadow-lg flex items-center justify-center gap-2 font-medium transition-all hover:bg-[#a3393b]"
+                        disabled={isExporting}
+                        className="mt-4 bg-[#bc4749] text-white px-8 py-3 rounded-full shadow-lg flex items-center justify-center gap-2 font-medium transition-all hover:bg-[#a3393b] disabled:opacity-50"
                     >
-                        <Download size={18} />
+                        {isExporting ? <RotateCcw size={18} className="animate-spin" /> : <Download size={18} />}
                         Lưu ảnh Story
                     </motion.button>
                 </motion.div>
@@ -205,9 +209,10 @@ export default function ChecklistPage() {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={exportImage}
-                        className="lg:hidden w-full bg-[#bc4749] text-white py-3 rounded-xl shadow-xl flex items-center justify-center gap-2 font-medium transition-all"
+                        disabled={isExporting}
+                        className="lg:hidden w-full bg-[#bc4749] text-white py-3 rounded-xl shadow-xl flex items-center justify-center gap-2 font-medium transition-all disabled:opacity-50"
                     >
-                        <Download size={18} />
+                        {isExporting ? <RotateCcw size={18} className="animate-spin" /> : <Download size={18} />}
                         Lưu ảnh Story
                     </motion.button>
                 </motion.div>

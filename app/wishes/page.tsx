@@ -12,6 +12,7 @@ export default function WishesPage() {
     const [prompt, setPrompt] = useState("");
     const [isGenerating, setIsGenerating] = useState(false);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+    const [isExporting, setIsExporting] = useState(false);
     const exportRef = useRef<HTMLDivElement>(null);
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,6 +51,7 @@ export default function WishesPage() {
 
     const exportImage = async () => {
         if (exportRef.current === null) return;
+        setIsExporting(true);
         try {
             const dataUrl = await toPng(exportRef.current, { cacheBust: true, pixelRatio: 2 });
             const link = document.createElement("a");
@@ -58,6 +60,8 @@ export default function WishesPage() {
             link.click();
         } catch (err) {
             console.error("Export failed", err);
+        } finally {
+            setIsExporting(false);
         }
     };
 
@@ -149,9 +153,10 @@ export default function WishesPage() {
 
                     <button
                         onClick={exportImage}
-                        className="mt-4 bg-[#bc4749] text-white py-4 rounded-2xl shadow-xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest hover:bg-[#a3393b] transition-all"
+                        disabled={isExporting}
+                        className="mt-4 bg-[#bc4749] text-white py-4 rounded-2xl shadow-xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest hover:bg-[#a3393b] disabled:opacity-50 transition-all"
                     >
-                        <Download size={20} />
+                        {isExporting ? <RotateCcw size={20} className="animate-spin" /> : <Download size={20} />}
                         Lưu ảnh Story
                     </button>
                 </motion.div>

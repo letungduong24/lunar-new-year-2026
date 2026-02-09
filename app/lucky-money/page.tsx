@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { toPng } from "html-to-image";
-import { Download, ChevronLeft, QrCode, Wallet, Info } from "lucide-react";
+import { Download, ChevronLeft, QrCode, Wallet, Info, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -20,6 +20,7 @@ export default function LuckyMoneyPage() {
     const [accountName, setAccountName] = useState("");
     const [amount, setAmount] = useState("");
     const [message, setMessage] = useState("Lì xì lấy hên Bính Ngọ 2026");
+    const [isExporting, setIsExporting] = useState(false);
     const exportRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -35,6 +36,7 @@ export default function LuckyMoneyPage() {
 
     const exportImage = async () => {
         if (exportRef.current === null) return;
+        setIsExporting(true);
         try {
             const dataUrl = await toPng(exportRef.current, { cacheBust: true, pixelRatio: 2 });
             const link = document.createElement("a");
@@ -43,6 +45,8 @@ export default function LuckyMoneyPage() {
             link.click();
         } catch (err) {
             console.error("Export failed", err);
+        } finally {
+            setIsExporting(false);
         }
     };
 
@@ -142,10 +146,10 @@ export default function LuckyMoneyPage() {
 
                     <button
                         onClick={exportImage}
-                        disabled={!accountNumber || !selectedBank}
+                        disabled={!accountNumber || !selectedBank || isExporting}
                         className="w-full bg-[#bc4749] text-white py-4 rounded-2xl shadow-xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest hover:bg-[#a3393b] disabled:opacity-50 transition-all"
                     >
-                        <Download size={20} />
+                        {isExporting ? <RotateCcw size={20} className="animate-spin" /> : <Download size={20} />}
                         Lưu ảnh Story
                     </button>
 
