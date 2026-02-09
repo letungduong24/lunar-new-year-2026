@@ -160,25 +160,13 @@ export default function ChecklistPage() {
                             </header>
 
                             <motion.div
-                                initial="hidden"
-                                animate="show"
-                                variants={{
-                                    hidden: { opacity: 0 },
-                                    show: {
-                                        opacity: 1,
-                                        transition: {
-                                            staggerChildren: 0.05
-                                        }
-                                    }
-                                }}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.5, delay: 0.3 }}
                                 className="flex-1 grid grid-cols-2 gap-x-4 gap-y-1 overflow-hidden"
                             >
                                 {checklistItems.map((item, index) => (
-                                    <motion.div
-                                        variants={{
-                                            hidden: { opacity: 0, y: 10 },
-                                            show: { opacity: 1, y: 0 }
-                                        }}
+                                    <div
                                         key={index}
                                         onClick={() => toggleItem(index)}
                                         className="flex items-center gap-1.5 cursor-pointer group/item py-0.5"
@@ -193,7 +181,7 @@ export default function ChecklistPage() {
                                         <span className={`text-[10px] md:text-[12px] leading-none ${checked.includes(index) ? 'text-[#bc4749] font-bold' : 'text-[#5e503f] font-medium'}`}>
                                             {item}
                                         </span>
-                                    </motion.div>
+                                    </div>
                                 ))}
                             </motion.div>
 
