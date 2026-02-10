@@ -1,5 +1,5 @@
 /**
- * Utility functions for downloading images on mobile devices,
+ * Utility functions for downloading/sharing images on mobile devices,
  * especially in in-app browsers (Messenger, Instagram, Facebook, etc.)
  */
 
@@ -55,109 +55,255 @@ export function isMobileDevice(): boolean {
 }
 
 /**
- * Downloads an image using Blob URL approach
- * This works better in in-app browsers by creating a blob and object URL
+ * Tries to share the image using Web Share API (works on mobile)
  */
-export function downloadOrOpenImage(dataUrl: string, filename: string): void {
+async function tryShareImage(blob: Blob, filename: string): Promise<boolean> {
+  if (!navigator.share) {
+    return false;
+  }
+
   try {
-    // Convert data URL to Blob
-    const blob = dataURLtoBlob(dataUrl);
+    const file = new File([blob], filename, { type: blob.type });
 
-    // Create object URL from blob
+    // Check if sharing files is supported
+    if (navigator.canShare && !navigator.canShare({ files: [file] })) {
+      return false;
+    }
+
+    await navigator.share({
+      files: [file],
+      title: 'Tết 2026',
+      text: 'Ảnh Tết Bính Ngọ 2026',
+    });
+
+    return true;
+  } catch (error) {
+    // User cancelled or share failed
+    console.log('Share cancelled or failed:', error);
+    return false;
+  }
+}
+
+/**
+ * Downloads or shares an image based on the browser environment
+ */
+export async function downloadOrOpenImage(dataUrl: string, filename: string): Promise<void> {
+  const blob = dataURLtoBlob(dataUrl);
+  const isMobile = isMobileDevice();
+  const isInApp = isInAppBrowser();
+
+  // Strategy 1: Try Web Share API on mobile (works best on mobile browsers)
+  if (isMobile && navigator.share) {
+    const shared = await tryShareImage(blob, filename);
+    if (shared) {
+      return; // Successfully shared
+    }
+  }
+
+  // Strategy 2: Try blob download
+  try {
     const blobUrl = URL.createObjectURL(blob);
-
-    // Create a temporary link element
     const link = document.createElement('a');
     link.href = blobUrl;
     link.download = filename;
     link.style.display = 'none';
 
-    // Append to body, click, and remove
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
-    // Clean up the blob URL after a short delay
+    // Clean up
     setTimeout(() => {
       URL.revokeObjectURL(blobUrl);
     }, 100);
 
+    return; // Successfully downloaded
   } catch (error) {
-    console.error('Blob download failed, trying fallback...', error);
-
-    // Fallback: Try direct data URL download
-    try {
-      const link = document.createElement('a');
-      link.href = dataUrl;
-      link.download = filename;
-      link.style.display = 'none';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (fallbackError) {
-      console.error('Fallback download also failed', fallbackError);
-
-      // Last resort: Open in new window
-      const newWindow = window.open();
-      if (newWindow) {
-        newWindow.document.write(`
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>${filename}</title>
-              <style>
-                body {
-                  margin: 0;
-                  padding: 0;
-                  display: flex;
-                  flex-direction: column;
-                  align-items: center;
-                  justify-content: center;
-                  min-height: 100vh;
-                  background: #1a1a1a;
-                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-                }
-                .container {
-                  text-align: center;
-                  padding: 20px;
-                  max-width: 100%;
-                }
-                img {
-                  max-width: 100%;
-                  height: auto;
-                  border-radius: 8px;
-                  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-                }
-                .instructions {
-                  color: #fff;
-                  margin-top: 20px;
-                  padding: 15px;
-                  background: rgba(255,255,255,0.1);
-                  border-radius: 8px;
-                  font-size: 14px;
-                  line-height: 1.6;
-                }
-                .instructions strong {
-                  color: #ffd700;
-                }
-              </style>
-            </head>
-            <body>
-              <div class="container">
-                <img src="${dataUrl}" alt="${filename}" />
-                <div class="instructions">
-                  <strong>📱 Cách lưu ảnh:</strong><br>
-                  Nhấn giữ vào ảnh và chọn "Lưu ảnh" / "Save Image"<br>
-                  hoặc chụp màn hình (Screenshot)
-                </div>
-              </div>
-            </body>
-          </html>
-        `);
-        newWindow.document.close();
-      }
-    }
+    console.error('Blob download failed:', error);
   }
+
+  // Strategy 3: Fallback - Open image in new window for manual save
+  openImageInNewWindow(dataUrl, filename, isInApp || isMobile);
+}
+
+/**
+ * Opens the image in a new window with instructions
+ */
+function openImageInNewWindow(dataUrl: string, filename: string, showMobileInstructions: boolean): void {
+  const newWindow = window.open('', '_blank');
+  if (!newWindow) {
+    alert('Vui lòng cho phép popup để lưu ảnh, hoặc chụp màn hình trang này.');
+    return;
+  }
+
+  const instructions = showMobileInstructions
+    ? `
+      <div class="instructions">
+        <strong>📱 Cách lưu ảnh trên điện thoại:</strong><br><br>
+        <strong>Cách 1:</strong> Nhấn vào nút "Tải xuống" bên dưới<br>
+        <strong>Cách 2:</strong> Nhấn giữ vào ảnh → chọn "Lưu ảnh"<br>
+        <strong>Cách 3:</strong> Chụp màn hình (Screenshot)<br>
+        <strong>Cách 4:</strong> Nhấn nút ⋮ (menu) → "Mở bằng trình duyệt" → thử lại
+      </div>
+    `
+    : `
+      <div class="instructions">
+        <strong>💾 Cách lưu ảnh:</strong><br><br>
+        Nhấn chuột phải vào ảnh → chọn "Save image as..."<br>
+        hoặc nhấn nút "Tải xuống" bên dưới
+      </div>
+    `;
+
+  newWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="vi">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <title>${filename}</title>
+        <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            overflow-x: hidden;
+          }
+          .container {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+          }
+          .image-wrapper {
+            position: relative;
+            margin: 20px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            background: #fff;
+          }
+          img {
+            width: 100%;
+            height: auto;
+            display: block;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: default;
+          }
+          .instructions {
+            color: #fff;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.8;
+            text-align: left;
+            border: 1px solid rgba(255,255,255,0.2);
+          }
+          .instructions strong {
+            color: #ffd700;
+          }
+          .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+          }
+          .download-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #bc4749 0%, #a3393b 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(188, 71, 73, 0.4);
+          }
+          .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(188, 71, 73, 0.6);
+          }
+          .download-btn:active {
+            transform: translateY(0);
+          }
+          .secondary-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+          }
+          .secondary-btn:hover {
+            background: rgba(255,255,255,0.2);
+            box-shadow: 0 4px 15px rgba(255,255,255,0.2);
+          }
+          @media (max-width: 480px) {
+            body {
+              padding: 10px;
+            }
+            .instructions {
+              font-size: 13px;
+              padding: 15px;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="image-wrapper">
+            <img src="${dataUrl}" alt="${filename}" id="mainImage" />
+          </div>
+          
+          ${instructions}
+          
+          <div class="button-group">
+            <a href="${dataUrl}" download="${filename}" class="download-btn" id="downloadBtn">
+              💾 Tải xuống ảnh
+            </a>
+            <button onclick="window.close()" class="download-btn secondary-btn">
+              ✕ Đóng cửa sổ
+            </button>
+          </div>
+        </div>
+
+        <script>
+          // Try to trigger download on button click
+          document.getElementById('downloadBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Create a temporary link and click it
+            const link = document.createElement('a');
+            link.href = '${dataUrl}';
+            link.download = '${filename}';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          });
+
+          // Prevent context menu on image for better UX
+          document.getElementById('mainImage').addEventListener('contextmenu', function(e) {
+            // Allow context menu (for save image option)
+            return true;
+          });
+        </script>
+      </body>
+    </html>
+  `);
+
+  newWindow.document.close();
 }
