@@ -6,7 +6,7 @@ import { toPng } from "html-to-image";
 import { Download, ChevronLeft, CheckCircle2, Circle, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import DownloadModal from "../components/DownloadModal";
+import { downloadOrOpenImage } from "@/lib/download-utils";
 
 const checklistItems = [
     "Đi du lịch một nơi mới",
@@ -50,8 +50,6 @@ const checklistItems = [
 export default function ChecklistPage() {
     const [checked, setChecked] = useState<number[]>([]);
     const [isExporting, setIsExporting] = useState(false);
-    const [showDownloadModal, setShowDownloadModal] = useState(false);
-    const [exportedImageUrl, setExportedImageUrl] = useState("");
     const exportRef = useRef<HTMLDivElement>(null);
 
 
@@ -66,13 +64,7 @@ export default function ChecklistPage() {
         setIsExporting(true);
         try {
             const dataUrl = await toPng(exportRef.current, { cacheBust: true, pixelRatio: 2 });
-            setExportedImageUrl(dataUrl);
-            setShowDownloadModal(true);
-
-            const link = document.createElement("a");
-            link.download = `my-2025-checklist.png`;
-            link.href = dataUrl;
-            link.click();
+            downloadOrOpenImage(dataUrl, `my-2025-checklist.png`);
         } catch (err) {
             console.error("Export failed", err);
         } finally {
@@ -212,12 +204,6 @@ export default function ChecklistPage() {
                 </motion.div>
             </div>
 
-            <DownloadModal
-                isOpen={showDownloadModal}
-                onClose={() => setShowDownloadModal(false)}
-                imageSrc={exportedImageUrl}
-                fileName="my-2025-checklist.png"
-            />
         </main>
     );
 }
