@@ -6,6 +6,7 @@ import { toPng } from "html-to-image";
 import { Download, ChevronLeft, QrCode, Wallet, Info, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import DownloadModal from "../components/DownloadModal";
 
 interface Bank {
     name: string;
@@ -21,6 +22,8 @@ export default function LuckyMoneyPage() {
     const [amount, setAmount] = useState("");
     const [message, setMessage] = useState("Lì xì lấy hên Bính Ngọ 2026");
     const [isExporting, setIsExporting] = useState(false);
+    const [showDownloadModal, setShowDownloadModal] = useState(false);
+    const [exportedImageUrl, setExportedImageUrl] = useState("");
     const exportRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -39,6 +42,10 @@ export default function LuckyMoneyPage() {
         setIsExporting(true);
         try {
             const dataUrl = await toPng(exportRef.current, { cacheBust: true, pixelRatio: 2 });
+            setExportedImageUrl(dataUrl);
+            setShowDownloadModal(true);
+
+            // Try to download automatically for desktop
             const link = document.createElement("a");
             link.download = `li-xi-2026-${accountNumber}.png`;
             link.href = dataUrl;
@@ -242,6 +249,13 @@ export default function LuckyMoneyPage() {
                 </div>
 
             </div>
+
+            <DownloadModal
+                isOpen={showDownloadModal}
+                onClose={() => setShowDownloadModal(false)}
+                imageSrc={exportedImageUrl}
+                fileName={`li-xi-2026-${accountNumber}.png`}
+            />
         </main>
     );
 }

@@ -6,6 +6,7 @@ import { toPng } from "html-to-image";
 import { Download, ChevronLeft, Sparkles, Upload, RotateCcw, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import DownloadModal from "../components/DownloadModal";
 
 export default function WishesPage() {
     const [wishText, setWishText] = useState("");
@@ -13,6 +14,8 @@ export default function WishesPage() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [isExporting, setIsExporting] = useState(false);
+    const [showDownloadModal, setShowDownloadModal] = useState(false);
+    const [exportedImageUrl, setExportedImageUrl] = useState("");
     const exportRef = useRef<HTMLDivElement>(null);
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,6 +57,9 @@ export default function WishesPage() {
         setIsExporting(true);
         try {
             const dataUrl = await toPng(exportRef.current, { cacheBust: true, pixelRatio: 2 });
+            setExportedImageUrl(dataUrl);
+            setShowDownloadModal(true);
+
             const link = document.createElement("a");
             link.download = `tet-wishes-2026.png`;
             link.href = dataUrl;
@@ -237,6 +243,13 @@ export default function WishesPage() {
                 </motion.div>
 
             </div>
+
+            <DownloadModal
+                isOpen={showDownloadModal}
+                onClose={() => setShowDownloadModal(false)}
+                imageSrc={exportedImageUrl}
+                fileName="tet-wishes-2026.png"
+            />
         </main>
     );
 }

@@ -6,6 +6,7 @@ import { toPng } from "html-to-image";
 import { Download, ChevronLeft, Sparkles, RotateCcw, Origami } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import DownloadModal from "../components/DownloadModal";
 
 export default function FortunePage() {
     const [name, setName] = useState("");
@@ -14,6 +15,8 @@ export default function FortunePage() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [isShaking, setIsShaking] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
+    const [showDownloadModal, setShowDownloadModal] = useState(false);
+    const [exportedImageUrl, setExportedImageUrl] = useState("");
     const exportRef = useRef<HTMLDivElement>(null);
 
     const generateFortune = async () => {
@@ -50,6 +53,9 @@ export default function FortunePage() {
         setIsExporting(true);
         try {
             const dataUrl = await toPng(exportRef.current, { cacheBust: true, pixelRatio: 2 });
+            setExportedImageUrl(dataUrl);
+            setShowDownloadModal(true);
+
             const link = document.createElement("a");
             link.download = `fortune-2026-${name}.png`;
             link.href = dataUrl;
@@ -229,6 +235,13 @@ export default function FortunePage() {
                     </motion.button>
                 </div>
             </div>
+
+            <DownloadModal
+                isOpen={showDownloadModal}
+                onClose={() => setShowDownloadModal(false)}
+                imageSrc={exportedImageUrl}
+                fileName={`fortune-2026-${name}.png`}
+            />
         </main>
     );
 }
